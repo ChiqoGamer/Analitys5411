@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check server.js)",
+      "Bash(npm run *)",
+      "Bash(node -e \"require\\('dotenv'\\).config\\(\\); console.log\\('SHEET_ID set:', !!process.env.SHEET_ID\\)\")",
+      "Bash(node server.js)",
+      "Bash(curl -s \"http://localhost:4000/api/order-history\")",
+      "PowerShell($conn = Get-NetTCPConnection -LocalPort 4000 -State Listen -ErrorAction SilentlyContinue; if \\($conn\\) { $conn | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force; \"Killed PID $\\($_.OwningProcess\\)\" } } else { \"nada en 4000\" })",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);console.log\\('keys:',Object.keys\\(j\\)\\);console.log\\('kpis:',JSON.stringify\\(j.kpis\\)\\);console.log\\('porTipoCustomer:',JSON.stringify\\(j.porTipoCustomer\\)\\);console.log\\('serieMensual \\(primeros 3\\):',JSON.stringify\\(j.serieMensual.slice\\(0,3\\)\\)\\);console.log\\('serieMensual meses total:',j.serieMensual.length\\);}\\)\")",
+      "Bash(npx vite *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 5174 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }; \"vite 5174 detenido\" } else { \"5174 libre\" })"
+    ]
+  }
+}
