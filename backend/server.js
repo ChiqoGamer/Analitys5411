@@ -16,11 +16,29 @@ const PORT = process.env.PORT || 4000;
 const SHEET_ID = process.env.SHEET_ID
 const SHEET_RANGE = process.env.SHEET_RANGE || "OrderHistory!A:AC"; // ajustar al rango real
 
-// Las credenciales de la cuenta de servicio se cargan desde el .json descargado de Google Cloud
-const auth = new google.auth.GoogleAuth({
-  keyFile: "./service-account.json", // poné aquí el archivo descargado (no lo subas a GitHub)
-  scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-});
+// Credenciales de la cuenta de servicio.
+// - En producción (ej. hosting): definir GOOGLE_CREDENTIALS_JSON con el JSON
+//   completo del service account como string. Evita subir el archivo al server.
+// - En desarrollo: si esa variable no existe, se usa ./service-account.json
+//   como fallback (el archivo descargado de Google Cloud, no versionado).
+const SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"];
+
+const authOptions = { scopes: SCOPES };
+if (process.env.GOOGLE_CREDENTIALS_JSON) {
+  try {
+    authOptions.credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+    console.log("Credenciales de Google cargadas desde GOOGLE_CREDENTIALS_JSON");
+  } catch (err) {
+    throw new Error(
+      `GOOGLE_CREDENTIALS_JSON no es un JSON válido: ${err.message}`
+    );
+  }
+} else {
+  authOptions.keyFile = "./service-account.json"; // fallback local (no lo subas a GitHub)
+  console.log("Credenciales de Google cargadas desde ./service-account.json (fallback local)");
+}
+
+const auth = new google.auth.GoogleAuth(authOptions);
 
 const sheets = google.sheets({ version: "v4", auth });
 
