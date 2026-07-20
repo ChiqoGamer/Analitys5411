@@ -82,9 +82,16 @@ export default function App() {
   const [error, setError] = useState(null);
   const [fetchedAt, setFetchedAt] = useState(null);
 
-  // Opciones de los selectores: se piden una vez.
+  // Opciones de los selectores, EN CASCADA: se re-piden al cambiar la marca o
+  // el customer, pasándolos como filtro para que el backend recorte los
+  // dropdowns hijos (customers de esa marca, tipos de ese customer).
   useEffect(() => {
-    fetch(OPCIONES_URL)
+    const params = new URLSearchParams();
+    if (marcaFiltro !== "Todas") params.set("marca", marcaFiltro);
+    if (customerFiltro !== "Todos") params.set("customer", customerFiltro);
+    const qs = params.toString();
+
+    fetch(qs ? `${OPCIONES_URL}?${qs}` : OPCIONES_URL)
       .then((res) => {
         if (!res.ok) throw new Error("Error al conectar con el backend");
         return res.json();
@@ -95,7 +102,19 @@ export default function App() {
         setTiposCustomer(["Todos", ...json.tiposCustomer]);
       })
       .catch((err) => setError(err.message));
-  }, []);
+  }, [marcaFiltro, customerFiltro]);
+
+  // Al cambiar un filtro "padre", reseteamos los hijos para no quedar con una
+  // selección que ya no existe en el nuevo subconjunto (ej: customer de otra marca).
+  const cambiarMarca = (v) => {
+    setMarcaFiltro(v);
+    setCustomerFiltro("Todos");
+    setTipoCustomerFiltro("Todos");
+  };
+  const cambiarCustomer = (v) => {
+    setCustomerFiltro(v);
+    setTipoCustomerFiltro("Todos");
+  };
 
   // Datos del dashboard: se re-consultan al cambiar cualquier filtro.
   useEffect(() => {
@@ -168,8 +187,8 @@ export default function App() {
           <>
             {/* Filtros */}
             <div style={styles.filters}>
-              <Filtro label="Marca" value={marcaFiltro} onChange={setMarcaFiltro} options={marcas} />
-              <Filtro label="Customer" value={customerFiltro} onChange={setCustomerFiltro} options={customers} />
+              <Filtro label="Marca" value={marcaFiltro} onChange={cambiarMarca} options={marcas} />
+              <Filtro label="Customer" value={customerFiltro} onChange={cambiarCustomer} options={customers} />
               <Filtro
                 label="Tipo de customer"
                 value={tipoCustomerFiltro}

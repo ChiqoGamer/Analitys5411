@@ -204,13 +204,21 @@ app.get("/api/order-history", async (req, res) => {
 
 // Valores únicos para poblar los selectores del frontend (marca, customer,
 // tipo de customer). Ordenados alfabéticamente y sin distinción de caso/espacios.
+//
+// Cascada: las opciones se recortan según lo ya elegido "más arriba" en la
+// jerarquía marca → customer → tipoCustomer. Así, al elegir una marca, el
+// dropdown de customers solo muestra los customers que tienen órdenes de esa
+// marca; al elegir además un customer, tipoCustomer se recorta a ese subconjunto.
+// Cada lista se calcula sobre su propio subconjunto para no auto-recortarse
+// (elegir un customer no debe borrar a los demás de su propio dropdown).
 app.get("/api/order-history/opciones", async (req, res) => {
   try {
     const { data } = await getSheetData();
+    const { marca, customer } = req.query;
 
-    const unicos = (campo) => {
+    const unicos = (rows, campo) => {
       const vistos = new Map(); // clave normalizada → primer valor original
-      for (const r of data) {
+      for (const r of rows) {
         const valor = r[campo];
         if (!valor) continue;
         const clave = normalizeKey(valor);
@@ -220,9 +228,9 @@ app.get("/api/order-history/opciones", async (req, res) => {
     };
 
     res.json({
-      marcas: unicos("marca"),
-      customers: unicos("customer"),
-      tiposCustomer: unicos("tipoCustomer"),
+      marcas: unicos(data, "marca"), // todas, siempre
+      customers: unicos(filtrar(data, { marca }), "customer"), // recortado por marca
+      tiposCustomer: unicos(filtrar(data, { marca, customer }), "tipoCustomer"), // por marca + customer
     });
   } catch (err) {
     console.error("Error leyendo Google Sheets:", err.message);
