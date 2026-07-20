@@ -15,8 +15,11 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const API_URL = "http://localhost:4000/api/order-history";
-const OPCIONES_URL = "http://localhost:4000/api/order-history/opciones";
+// Base del backend. En Vite, las env vars del cliente deben empezar con VITE_.
+// En producción se define VITE_API_URL; en desarrollo cae a localhost:4000.
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = `${API_BASE}/api/order-history`;
+const OPCIONES_URL = `${API_BASE}/api/order-history/opciones`;
 
 // Colores (hex directos: Recharts no resuelve var() en atributos SVG)
 const COLORS = {
